@@ -6,7 +6,7 @@ metadata:
   name: ingress-nginx
 ---
 
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: default-http-backend
