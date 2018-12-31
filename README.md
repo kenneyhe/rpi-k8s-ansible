@@ -59,7 +59,7 @@ This example will create a, Ingress Controller, Service, Deployment and 5x Nginx
 ```
 pi@node00:~ $ kubectl get po
 No resources found.
-pi@node00:~ $ kubectl apply -f https://raw.githubusercontent.com/michael-robbins/rpi-k8s-ansible/master/pods/example_ha_website/web/ingress-controller-base.yaml
+pi@node00:~ $ kubectl apply -f https://raw.githubusercontent.com/kenneyhe/rpi-k8s-ansible/master/kubernetes/example_ha_website/web/ingress-controller-base.yaml
 namespace "ingress-nginx" configured
 deployment.extensions "default-http-backend" configured
 service "default-http-backend" unchanged
@@ -72,9 +72,9 @@ role.rbac.authorization.k8s.io "nginx-ingress-role" unchanged
 rolebinding.rbac.authorization.k8s.io "nginx-ingress-role-nisa-binding" unchanged
 clusterrolebinding.rbac.authorization.k8s.io "nginx-ingress-clusterrole-nisa-binding" configured
 deployment.extensions "nginx-ingress-controller" configured
-pi@node00:~ $ kubectl apply -f https://raw.githubusercontent.com/michael-robbins/rpi-k8s-ansible/master/pods/example_ha_website/web/ingress-service-nodeport.yaml
+pi@node00:~ $ kubectl apply -f  https://raw.githubusercontent.com/kenneyhe/rpi-k8s-ansible/master/kubernetes/example_ha_website/web/ingress-service-nodeport.yaml
 
-pi@node00:~ $ kubectl apply -f https://raw.githubusercontent.com/michael-robbins/rpi-k8s-ansible/master/pods/example_ha_website/web/ingress-service-deployment-web.yaml
+pi@node00:~ $ kubectl apply -f https://raw.githubusercontent.com/kenneyhe/rpi-k8s-ansible/master/kubernetes/example_ha_website/web/ingress-service-deployment-web.yaml
 service "webserver-service" created
 deployment.apps "webserver-deployment" created
 pi@node00:~ $ kubectl get pods
