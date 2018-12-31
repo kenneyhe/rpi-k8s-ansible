@@ -15,39 +15,11 @@ CNI: Flannel (Weave support is there, but it crashes and reboot's the rPi's, see
 # Write the image to the SD card, please use at least 2018-04-18 if you want to use WiFi
 $ sudo dd if=YYYY-MM-DD-raspbian-stretch-lite.img of=/dev/sdX bs=16M status=progress
 
-# Provision wifi settings on first boot
-$ cat bootstrap/wpa_supplicant.conf
-ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-update_config=1
-country=AU
+# Provision wifi settings on first boot of the board with usb with password pi/raspberry
+sudo raspi-config
+# setup wifi
+# enable ssh
 
-network={
-    ssid=""
-    psk=""
-    key_mgmt=WPA-PSK
-}
-
-$ cp bootstrap/wpa_supplicant.conf /mnt/boot/
-
-# Enable SSH on first boot
-$ cp bootstrap/ssh /mnt/boot/ssh
-```
-
-```
-Example flash and ssh/wifi:
-sudo umount /media/<user>/boot
-sudo umount /media/<user>/rootfs
-sudo dd if=2018-11-13-raspbian-stretch-lite.img of=/dev/<disk> bs=16M status=progress
-sync
-
-# Unplug/replug SD card
-
-cp bootstrap/wpa_supplicant.conf /media/<user>/boot/
-cp bootstrap/ssh /media/<user>/boot/
-
-sync
-sudo umount /media/<user>/boot
-sudo umount /media/<user>/rootfs
 ```
 
 ## Updating cluster.yml to match your environment
@@ -81,25 +53,11 @@ ansible-playbook -i cluster.yml site.yml -l node00,node05
 ansible-playbook -i cluster.yml site.yml --skip-tags common
 ```
 
-Using Weave as the k8s CNI resulted in quite a few kernel oops and the rPi's rebooting:
-```
-pi@node00:~ $ kubectl nodes get
- kernel:[  152.913108] Internal error: Oops: 80000007 [#1] SMP ARM
- kernel:[  152.928828] Process weaver (pid: 4515, stack limit = 0x90266210)
- kernel:[  152.929514] Stack: (0x902679f0 to 0x90268000)
- kernel:[  152.930180] 79e0:                                     00000000 00000000 3d3aa8c0 90267a88
- kernel:[  152.931470] 7a00: 0000801a 0000cbb6 a8b538d0 a8b53898 90267d2c 7f75ead0 00000001 90267a5c
-```
-
-See https://gist.github.com/alexellis/fdbc90de7691a1b9edb545c17da2d975 for more discussion.
-
-Instead I've decided to move to Flannel, which is working nicely so far.
-
 # Running stuff on the cluster!
 ## Example HA web service
 This example will create a, Ingress Controller, Service, Deployment and 5x Nginx pods that will print out the node name they are running on!
 ```
-pi@node00:~ $ kubectl get pods
+pi@node00:~ $ kubectl get po
 No resources found.
 pi@node00:~ $ kubectl apply -f https://raw.githubusercontent.com/michael-robbins/rpi-k8s-ansible/master/pods/example_ha_website/web/ingress-controller-base.yaml
 namespace "ingress-nginx" configured
@@ -124,7 +82,7 @@ NAME                                    READY     STATUS              RESTARTS  
 webserver-deployment-7c7948b97f-q9bpk   0/1       ContainerCreating   0          5s
 webserver-deployment-7c7948b97f-s95tp   0/1       ContainerCreating   0          5s
 webserver-deployment-7c7948b97f-tls8n   0/1       ContainerCreating   0          5s
-pi@node00:~ $ kubectl get pods
+pi@node00:~ $ kubectl get po
 NAME                                    READY     STATUS    RESTARTS   AGE
 webserver-deployment-7c7948b97f-q9bpk   1/1       Running   0          28s
 webserver-deployment-7c7948b97f-s95tp   1/1       Running   0          28s
@@ -139,7 +97,7 @@ pi@node03:~ $ sudo shutdown -h now
 Connection to 192.168.58.63 closed by remote host.
 Connection to 192.168.58.63 closed.
 
-pi@node00:~ $ kubectl get pods -o wide
+pi@node00:~ $ kubectl get po -o wide
 NAME                                    READY     STATUS    RESTARTS   AGE       IP           NODE
 webserver-deployment-7c7948b97f-q9bpk   1/1       Running   0          23m       10.244.1.4   node04
 webserver-deployment-7c7948b97f-s95tp   1/1       Running   0          23m       10.244.4.6   node02
@@ -178,7 +136,7 @@ pi@node00:~ $ kubectl get deployment webserver-deployment --output=yaml
   updatedReplicas: 3
 ...
 
-pi@node00:~ $ kubectl get pods -o wide
+pi@node00:~ $ kubectl get po -o wide
 NAME                                    READY     STATUS    RESTARTS   AGE       IP           NODE
 webserver-deployment-7c7948b97f-lld6r   1/1       Running   0          47s       10.244.2.4   node01
 webserver-deployment-7c7948b97f-q9bpk   1/1       Running   0          27m       10.244.1.4   node04
@@ -191,3 +149,17 @@ webserver-deployment-7c7948b97f-tls8n   1/1       Unknown   0          27m      
 # Shutdown all nodes
 ansible -i cluster.yml -a "shutdown -h now" all
 ```
+
+Reference:
+
+# single node master node single cluster
+[![asciicast](https://asciinema.org/a/PPT0bc7em7NPr6vcJfzks6Ywe.svg)](https://asciinema.org/a/PPT0bc7em7NPr6vcJfzks6Ywe)
+
+# hypriot example
+https://blog.hypriot.com/post/setup-kubernetes-raspberry-pi-cluster/
+
+# kube dashboard
+https://github.com/kubernetes/dashboard
+
+# over internet service
+https://www.raspberrypi.org/documentation/remote-access/access-over-Internet/
